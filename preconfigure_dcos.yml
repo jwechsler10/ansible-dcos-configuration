@@ -1,0 +1,100 @@
+---
+- hosts: all
+  become: yes 
+  
+  vars:
+    locale: en_US.utf-8
+
+  tasks: 
+  - name: set SELinux to permissive
+    selinux:
+      policy: targeted
+      state: permissive
+
+ # - name: remove docker
+  #  yum:
+   #   name: docker-engine docker-engine-selinux
+    #  state: removed
+
+ # - name: install docker
+  #  yum:
+   #   name: https://yum.dockerproject.org/repo/main/centos/7/Packages/docker-engine-1.13.1-1.el7.centos.x86_64.rpm
+    #  state: present
+
+  - name: install UnZip
+    yum:
+      name: unzip
+      state: latest
+
+  - name: install ntp
+    yum:
+      name: ntp
+      state: latest
+
+  - name: install epel
+    yum:
+      name: epel-release
+      state: latest
+
+  - name: install tar
+    yum:
+      name: tar
+      state: latest
+
+  - name: install XZ Utils
+    yum:
+      name: xz
+      state: latest
+
+  - name: install ipset
+    yum:
+      name: ipset
+      state: latest
+
+  - name: install JQ
+    yum:
+      name: jq
+      state: latest
+ 
+  - name: enable and start docker
+    systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+  - name: add nogroup group
+    group:
+      name: nogroup
+      state: present
+
+  - name: add docker group
+    group:
+      name: docker
+      state: present
+
+  - name: set locale
+    shell: export LC_ALL={{locale}}
+  
+  - name: set LANG
+    shell: export LANG={{locale}}
+  
+  - name: turn off firewall
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: no
+  
+  - name: enable chronyd
+    systemd:
+      name: chronyd
+      state: started
+      enabled: yes
+
+  - name: start and enable ntp
+    systemd:
+      name: ntpd
+      state: started
+      enabled: yes
+
+  - name: set hostname
+    shell: sudo sh -c 'echo "$(hostname -i) $(hostname -s) $(hostname -f)" >> /etc/hosts'
